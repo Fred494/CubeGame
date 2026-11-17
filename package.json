@@ -1,0 +1,15 @@
+{
+  "name": "cubegame",
+  "version": "1.0.0",
+  "description": "Conta Cubos - a multiplayer party game: guess how many cubes are in a 3D diagram",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test test/cubes.test.js",
+    "stats": "node scripts/cubes-stats.js"
+  },
+  "engines": { "node": ">=20" },
+  "dependencies": { "qrcode": "^1.5.4" }
+}

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Conta Cubos</title>
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="cubes.css">
+<link rel="icon" href="favicon.svg">
+</head>
+<body>
+<main style="max-width:620px;margin:8vh auto;padding:0 20px;text-align:center">
+  <h1 style="font-size:52px">CONTA <span class="up">CUBOS</span></h1>
+  <p class="muted" style="font-size:18px">Jogo de festa para até 8 jogadores: o ecrã principal mostra um diagrama 3D de cubos e cada jogador adivinha quantos cubos tem no telemóvel. Ganha quem acertar mais depressa.</p>
+  <div class="card" style="display:grid;gap:12px;margin-top:24px">
+    <a class="btn green" href="host.html" style="text-decoration:none;display:grid;place-items:center">Criar jogo (ecrã principal)</a>
+    <a class="btn" href="play.html" style="text-decoration:none;display:grid;place-items:center">Entrar com um código</a>
+    <a class="btn ghost" href="preview.html" style="text-decoration:none;display:grid;place-items:center">Pré-visualizar diagramas</a>
+  </div>
+  <p class="muted" id="status" role="status" style="margin-top:18px"></p>
+</main>
+<script src="config.js"></script>
+<script>
+  fetch((window.MM_API || '').replace(/\/$/, '') + '/api/health').then(function () { document.getElementById('status').textContent = '● Servidor online'; })
+    .catch(function () { document.getElementById('status').textContent = 'Servidor não acessível. Corre npm start.'; });
+</script>
+</body>
+</html>
