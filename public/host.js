@@ -3,6 +3,7 @@ import { CubeStage } from './cubes/view.js';
 
 const KEY = 'cubes-host';
 const load = () => { try { return JSON.parse(localStorage.getItem(KEY)); } catch { return null; } };
+if (new URLSearchParams(location.search).has('new')) { try { localStorage.removeItem(KEY); } catch {} history.replaceState(null, '', location.pathname); }
 let host = load();
 let S = null, sig = '', off = 0; // off = server clock - local clock
 let showAns = false, stage = null, stageRound = 0;
@@ -38,7 +39,7 @@ setInterval(() => {
   const now = srvNow();
   if (S.phase === 'countdown') {
     const left = S.revealAt - now;
-    if (left <= 0) { if (chOv.innerHTML) chOv.innerHTML = ''; return; }
+    if (left <= 0) { if (chOv.innerHTML) chOv.innerHTML = ''; if (!S.diagram) poll(); return; }
     const d = Math.ceil(left / 1000);
     if (d !== lastDigit) { lastDigit = d; chOv.innerHTML = `<div class="cd-big"><div>${d}<small>Prepara-te… o diagrama aparece já a seguir</small></div></div>`; fx.beep(d === 1 ? 880 : 660, 120); }
   } else if (chOv.innerHTML) { chOv.innerHTML = ''; lastDigit = null; }
@@ -59,45 +60,34 @@ function render() {
 }
 function stopStage() { if (anim) { clearInterval(anim.timer); anim = null; } if (stage) { stage.dispose(); stage = null; stageRound = 0; } }
 
-const head = (extra = '') => `<div class="hbar"><span class="brand" style="font-size:18px">CONTA <b>CUBOS</b></span><span class="chip">${S ? 'Sala ' + esc(S.code) : 'Nova sala'}</span>${S?.testMode ? '<span class="chip paused">MODO DE TESTE</span>' : ''}<span class="grow"></span>${extra}<a class="btn ghost sm" href="preview.html" target="_blank" rel="noopener" style="text-decoration:none;display:inline-grid;place-items:center">Pré-visualização</a></div>`;
+const head = (extra = '') => `<div class="hbar"><span class="brand" style="font-size:20px">CONTA <b>CUBOS</b></span>${S ? `<span class="chip">Sala ${esc(S.code)}</span>` : ''}${S?.testMode ? '<span class="chip paused">MODO DE TESTE</span>' : ''}<span class="grow"></span>${extra}</div>`;
 
-function createView() {
-  return `<div style="max-width:560px;margin:8vh auto;text-align:center"><h1 style="font-size:44px">CONTA <span class="up">CUBOS</span></h1>
-  <p class="muted">Mini jogo de festa: adivinha quantos cubos tem o diagrama 3D. O ecrã principal mostra o diagrama, cada jogador responde no telemóvel.</p>
-  <div class="card" style="text-align:left"><button class="btn green" style="width:100%" data-act="create">Criar sala</button></div>
-  <p class="muted"><a href="preview.html">Pré-visualizar diagramas</a> · <a href="play.html">Entrar como jogador</a></p></div>`;
-}
+const createView = () => '<p class="muted" style="text-align:center;margin-top:20vh;font-size:22px">A criar o jogo…</p>';
 
 function lobbyView() {
   const n = S.players.length, need = S.testMode ? 1 : 2, ok = n >= need;
+  const showTest = /test/.test(location.search); // hidden developer switch: host.html?test
   return `${head()}<div class="grid">
-  <div class="card"><div class="muted">Entra em <b>${esc(location.host)}</b> com o código</div><div class="code">${esc(S.code)}</div>
-    <div class="row" style="align-items:flex-start"><img class="qr" alt="QR code" src="${API}/api/qr?text=${encodeURIComponent(joinUrl())}"><div class="grow muted">Os jogadores lêem o QR code ou abrem<br><b style="word-break:break-all">${esc(joinUrl())}</b><br><br>Até ${S.maxPlayers} jogadores.</div></div>
-    <h2 style="font-size:20px;margin-top:18px">Jogadores (${n}/${S.maxPlayers})</h2>
-    ${S.players.map((p) => `<div class="prow" style="grid-template-columns:36px 1fr 36px"><span class="avatar" style="background:${esc(p.avatar)}">${esc(p.name[0].toUpperCase())}</span><div><b>${esc(p.name)}</b> <span class="dot ${p.connected ? 'on' : ''}"></span></div><button class="btn ghost sm" data-act="kick" data-id="${esc(p.id)}" aria-label="Remover ${esc(p.name)}">✕</button></div>`).join('') || '<p class="muted">À espera de jogadores…</p>'}</div>
-  <div class="card"><h2 style="font-size:20px">Configuração</h2>
-    <label class="f">Número de rondas</label>
-    <div class="ctl">${Array.from({ length: 10 }, (_, i) => i + 1).map((r) => `<button class="btn ${S.totalRounds === r ? 'green' : 'ghost'} sm" style="min-width:44px" data-act="rounds" data-v="${r}" aria-pressed="${S.totalRounds === r}">${r}</button>`).join('')}</div>
-    <p class="muted" style="font-size:13px">Os níveis sobem sempre (5×5 simétrico até 8×8 livre) e cada ronda usa um molde diferente.</p>
-    <label class="f">Diagramas feitos à mão (opcional)</label>
-    <div class="ctl"><input type="file" id="manualFile" accept=".json,application/json" style="padding:8px"></div>
-    <p class="muted" style="font-size:13px;margin:6px 0 0">${S.manualCount ? `✓ ${S.manualCount} diagrama(s) manual(is) vão ser usados nas primeiras rondas. <button class="btn ghost sm" data-act="clearManual">Limpar</button>` : 'JSON com uma matriz de alturas, ex.: <code>[[3,0,2],[1,4,4],[0,2,1]]</code>, ou uma lista de matrizes. Passam pela mesma validação de justiça.'}</p>
-    <label class="f">Modo de teste</label>
-    <button class="btn ${S.testMode ? 'gold' : 'ghost'} sm" data-act="test" aria-pressed="${S.testMode}">${S.testMode ? '✓ Ligado: 1 jogador chega, tecla A mostra a resposta, podes saltar rondas' : 'Desligado'}</button>
-    <button class="btn green" style="width:100%;margin-top:22px" data-act="start" ${ok ? '' : 'disabled'}>${ok ? 'Mostrar as regras e começar' : `Precisas de ${need} jogador(es)`}</button>
+  <div class="card"><div class="muted" style="font-size:18px">Entra em <b>${esc(location.host)}</b> com o código</div><div class="code">${esc(S.code)}</div>
+    <div class="row" style="align-items:flex-start"><img class="qr" alt="QR code" src="${API}/api/qr?text=${encodeURIComponent(joinUrl())}"><div class="grow muted" style="font-size:17px">Lê o QR code com o telemóvel<br>ou abre <b style="word-break:break-all;color:var(--text)">${esc(joinUrl())}</b></div></div>
+    <h2 style="font-size:22px;margin-top:20px">Jogadores (${n}/${S.maxPlayers})</h2>
+    ${S.players.map((p) => `<div class="prow" style="grid-template-columns:36px 1fr 36px"><span class="avatar" style="background:${esc(p.avatar)}">${esc(p.name[0].toUpperCase())}</span><div><b style="font-size:18px">${esc(p.name)}</b> <span class="dot ${p.connected ? 'on' : ''}"></span></div><button class="btn ghost sm" data-act="kick" data-id="${esc(p.id)}" aria-label="Remover ${esc(p.name)}">✕</button></div>`).join('') || '<p class="muted">À espera de jogadores…</p>'}</div>
+  <div class="card"><h2 style="font-size:22px">Quantas rondas?</h2>
+    <div class="ctl" style="margin-top:12px">${Array.from({ length: 10 }, (_, i) => i + 1).map((r) => `<button class="btn ${S.totalRounds === r ? 'green' : 'ghost'}" style="min-width:56px;min-height:56px;font-size:20px" data-act="rounds" data-v="${r}" aria-pressed="${S.totalRounds === r}">${r}</button>`).join('')}</div>
+    <p class="muted" style="margin-top:12px">Cada ronda é mais difícil do que a anterior.</p>
+    ${showTest ? `<button class="btn ${S.testMode ? 'gold' : 'ghost'} sm" data-act="test" aria-pressed="${S.testMode}">${S.testMode ? '✓ Modo de teste ligado' : 'Modo de teste'}</button>` : ''}
+    <button class="btn green" style="width:100%;margin-top:26px;font-size:22px;min-height:68px" data-act="start" ${ok ? '' : 'disabled'}>${ok ? 'Começar o jogo' : `À espera de ${need} jogador(es)…`}</button>
   </div></div>`;
 }
 
 function rulesView() {
-  return `${head()}<div class="card" style="max-width:900px;margin:24px auto;border-color:var(--gold)"><h1 style="font-size:40px">Regras do Conta Cubos</h1>
-  <p class="muted" style="font-size:18px">${S.totalRounds} ronda(s) · cada diagrama é mais difícil do que o anterior.</p>
+  return `${head()}<div class="card" style="max-width:900px;margin:24px auto;border-color:var(--gold)"><h1 style="font-size:44px">Regras</h1>
   <ul class="rules-list">
-    <li><b>Objetivo:</b> adivinhar quantos cubos tem o diagrama. Ganha quem acertar <b>mais depressa</b> (soma dos tempos de todas as rondas).</li>
-    <li><b>Colunas cheias:</b> todas as colunas estão cheias até ao chão. <b>Não há buracos escondidos</b> por dentro.</li>
-    <li><b>Resposta errada:</b> bloqueia o teu telemóvel durante <b>20 segundos</b>. Depois podes tentar outra vez (tentativas ilimitadas).</li>
-    <li><b>Tempo:</b> cada ronda dura no máximo <b>3 minutos</b>. Quem não acertar fica com 3:00 + 30 s de penalização.</li>
-    <li><b>Dica:</b> pensa em camadas, simetrias e colunas. O diagrama roda e inclina-se para veres dentro dos fossos.</li></ul>
-  <div class="ctl"><button class="btn green" data-act="next" style="font-size:22px;padding:18px 28px">▶ Começar a ronda 1</button></div></div>`;
+    <li>Adivinha quantos cubos tem o diagrama.</li>
+    <li>Ganha quem acertar mais rápido.</li>
+    <li>Tens <b>3 minutos</b> para cada ronda.</li>
+    <li>Ao errares uma resposta ficas <b>20 segundos</b> bloqueado de responder. Não há limite de tentativas, só o tempo.</li></ul>
+  <div class="ctl" style="margin-top:20px"><button class="btn green" data-act="next" style="font-size:24px;padding:18px 32px">Começar a ronda 1</button></div></div>`;
 }
 
 function finalView() {
@@ -118,6 +108,9 @@ function gameView() {
     lastSolved = 0;
   }
   const over = S.phase === 'roundend';
+  // while counting down the stage is hidden (it would still show the previous round)
+  $('#chStage').style.visibility = S.phase === 'countdown' ? 'hidden' : 'visible';
+  if (S.phase === 'countdown' && !chOv.innerHTML) { lastDigit = null; chOv.innerHTML = '<div class="cd-big"><div>' + Math.max(1, Math.ceil((S.revealAt - srvNow()) / 1000)) + '</div></div>'; }
   if (over && !anim && S.layers) startBuild();
   if (!over && anim) { clearInterval(anim.timer); anim = null; }
   const done = over && anim?.done;
@@ -163,7 +156,7 @@ function startBuild() {
   }, 900);
 }
 
-// ------------------------------------------------------------------ events
+// ---- events
 game.addEventListener('click', onClick);
 app.addEventListener('click', onClick);
 async function onClick(e) {
@@ -175,25 +168,21 @@ async function onClick(e) {
   else if (a === 'rounds') await hostCall({ action: 'setRounds', rounds: Number(el.dataset.v) });
   else if (a === 'test') await hostCall({ action: 'setTest', on: !S.testMode });
   else if (a === 'kick') await hostCall({ action: 'removePlayer', playerId: el.dataset.id });
-  else if (a === 'clearManual') await hostCall({ action: 'clearManual' });
   else if (a === 'start') await hostCall({ action: 'start' });
   else if (a === 'next') await hostCall({ action: 'next' });
   else if (a === 'skip') await hostCall({ action: 'skip' });
   else if (a === 'restart') { if (window.confirm('Voltar ao lobby com os mesmos jogadores?')) await hostCall({ action: 'restart' }); }
   else if (a === 'ans') { showAns = !showAns; sig = ''; render(); }
 }
-app.addEventListener('change', async (e) => {
-  if (e.target.id !== 'manualFile' || !e.target.files[0]) return;
-  const text = await e.target.files[0].text();
-  const r = await hostCall({ action: 'loadManual', json: text });
-  if (r) toast(`${r.count} diagrama(s) manual(is) carregados`);
-});
 document.addEventListener('keydown', (e) => {
   if (/INPUT|TEXTAREA/.test(document.activeElement.tagName) || !S?.testMode) return;
   if (e.key === 'a' || e.key === 'A') { showAns = !showAns; sig = ''; render(); }
   if ((e.key === 'n' || e.key === 'N') && ['countdown', 'playing'].includes(S.phase)) hostCall({ action: 'skip' });
 });
 
-render();
-poll();
+async function boot() {
+  if (!host) { try { const r = await api('/api/rooms', { method: 'POST', body: {} }); host = { code: r.code, token: r.hostToken }; localStorage.setItem(KEY, JSON.stringify(host)); } catch (er) { toast(er.message, 'err'); } }
+  render(); poll();
+}
+boot();
 window.__host = () => ({ S, anim, stage });

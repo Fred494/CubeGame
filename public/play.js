@@ -1,6 +1,6 @@
 import { api, esc, $, toast, fx, fmtClock } from './common.js';
 
-const AVATARS = ['#4F8EFF', '#2BD99F', '#F5C56B', '#F26B78', '#A78BFA', '#38BDF8', '#FB923C', '#F472B6'];
+const AVATARS = ['#FF8A1F', '#E5483B', '#F4B80C', '#8B5CF6', '#0EA5E9', '#16A34A', '#EC4899', '#78350F'];
 const KEY = 'cubes-session';
 const load = () => { try { return JSON.parse(localStorage.getItem(KEY)); } catch { return null; } };
 const save = (s) => { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* ignore */ } };
@@ -63,29 +63,28 @@ function draw() {
   main.innerHTML = `<div class="row"><span class="brand">CONTA <b>CUBOS</b></span><span class="grow"></span>${S.round ? `<span class="chip">Ronda ${S.round}/${S.totalRounds}</span>` : ''}<span class="chip">${esc(S.me.name)}</span></div><div class="scr">${v}</div>`;
 }
 function joinView() {
-  const p = new URLSearchParams(location.search);
-  return `<div class="hero"><h1>CONTA <b style="color:var(--green)">CUBOS</b></h1><p class="muted">Entra no jogo com o código da sala do anfitrião.</p></div>
+  const q = new URLSearchParams(location.search);
+  return `<div class="hero"><h1>Conta <span style="color:var(--blue)">Cubos</span></h1><p class="muted" style="font-size:18px">Entra no jogo</p></div>
   <form class="card" id="joinForm" autocomplete="off">
-    <label class="f" for="code">Código da sala</label><input id="code" class="code-in" maxlength="6" autocapitalize="characters" value="${esc((p.get('code') || '').toUpperCase())}" placeholder="ABC123">
-    <label class="f" for="name">O teu nome</label><input id="name" maxlength="16" placeholder="ex.: Maria">
-    <label class="f">Cor do avatar</label><div class="swatches">${AVATARS.map((c) => `<button type="button" class="sw ${c === ui.avatar ? 'sel' : ''}" data-act="avatar" data-v="${c}" style="background:${c}" aria-label="Cor ${c}"></button>`).join('')}</div>
+    <label class="f" for="code">Código do jogo</label><input id="code" class="code-in" maxlength="6" autocapitalize="characters" value="${esc((q.get('code') || '').toUpperCase())}" placeholder="ABC123">
+    <label class="f" for="name">O teu nome</label><input id="name" maxlength="16" placeholder="ex.: Maria" style="font-size:20px">
+    <label class="f">Escolhe a tua cor</label><div class="swatches">${AVATARS.map((c) => `<button type="button" class="sw ${c === ui.avatar ? 'sel' : ''}" data-act="avatar" data-v="${c}" style="background:${c}" aria-label="Cor ${c}"></button>`).join('')}</div>
     ${ui.joinErr ? `<p class="down" role="alert">${esc(ui.joinErr)}</p>` : ''}
-    <button class="btn green" style="width:100%;margin-top:18px">Entrar no jogo</button></form>`;
+    <button class="btn green" style="width:100%;margin-top:22px;font-size:22px;min-height:66px">Entrar</button></form>`;
 }
-const lobbyView = () => `<div class="hero"><h1>Estás dentro!</h1><p class="muted">Sala <b>${esc(S.code)}</b> · à espera que o anfitrião comece.</p></div>
-  <div class="card"><h3>Jogadores (${S.players.length}/${S.maxPlayers})</h3><div class="pl-list" style="margin-top:10px">${S.players.map((p) => `<span class="chip" style="font-size:15px;padding:6px 12px">${esc(p.name)}${p.id === S.me.id ? ' (tu)' : ''}</span>`).join('')}</div></div>
-  <div class="card"><h3>Como funciona</h3><p class="muted">Um diagrama 3D de cubos aparece no ecrã principal. Conta (ou calcula!) quantos cubos tem e escreve aqui o número. Ganha quem acertar mais depressa.</p></div>`;
-const rulesView = () => `<div class="card"><h2>Regras</h2><ul style="line-height:1.7;padding-left:20px"><li>Olha sempre para o <b>ecrã principal</b>: o diagrama não aparece aqui.</li><li>As colunas são sempre <b>cheias até ao chão</b>, sem buracos escondidos.</li><li>Resposta errada: <b>bloqueio de 20 s</b>.</li><li>Cada ronda dura no máximo <b>3 minutos</b>.</li></ul></div><p class="tag">À espera que o anfitrião comece a ronda 1…</p>`;
-const countdownView = () => `<div class="state ok" style="background:var(--blue);color:#fff;margin:auto 0"><div class="mid">Olha para o ecrã principal!</div><div class="huge" id="cd">${Math.max(1, Math.ceil((S.revealAt - (Date.now() + off)) / 1000))}</div></div>`;
+const lobbyView = () => `<div class="hero"><h1>Estás dentro!</h1><p class="muted" style="font-size:18px">À espera que o jogo comece…</p></div>
+  <div class="card"><h3>Jogadores (${S.players.length}/${S.maxPlayers})</h3><div class="pl-list" style="margin-top:10px">${S.players.map((x) => `<span class="chip" style="font-size:16px;padding:6px 14px">${esc(x.name)}${x.id === S.me.id ? ' (tu)' : ''}</span>`).join('')}</div></div>`;
+const rulesView = () => `<div class="card"><h2>Regras</h2><ul style="line-height:1.7;padding-left:20px;font-size:18px"><li>Adivinha quantos cubos tem o diagrama.</li><li>Ganha quem acertar mais rápido.</li><li>Tens <b>3 minutos</b> para cada ronda.</li><li>Ao errares ficas <b>20 segundos</b> bloqueado. Não há limite de tentativas, só o tempo.</li></ul></div><p class="tag">Olha para o ecrã principal…</p>`;
+const countdownView = () => `<div class="state ok" style="margin:auto 0"><div class="mid">Olha para o ecrã principal!</div><div class="huge" id="cd">${Math.max(1, Math.ceil((S.revealAt - (Date.now() + off)) / 1000))}</div></div>`;
 
 function playingView() {
   const m = S.mine || { solved: false, attempts: 0 };
   if (m.solved) return `<div class="state ok" style="margin:auto 0"><div class="huge">Certo!</div><div class="mid">${fmtMs(m.solvedMs)}</div><p style="font-size:18px;font-weight:600">${m.attempts} tentativa${m.attempts === 1 ? '' : 's'} · à espera dos outros… (${S.solvedCount}/${S.players.length})</p></div>`;
   const left = Math.ceil((lockAt - performance.now()) / 1000), locked = left > 0;
   const tabs = `<div class="tabs"><button data-act="tab" data-v="answer" class="${ui.tab === 'answer' ? 'on' : ''}">🔢 Resposta</button><button data-act="tab" data-v="calc" class="${ui.tab === 'calc' ? 'on' : ''}">🧮 Calculadora e notas</button></div>`;
-  const info = `<div class="tag">Quantos cubos tem o diagrama? · <span id="elapsed" class="num">${fmtClock(S.roundMs)}</span> · ${m.attempts ? `${m.attempts} tentativa${m.attempts === 1 ? '' : 's'}` : 'olha para o ecrã'}</div>`;
+  const info = `<div class="tag">Quantos cubos? · <span id="elapsed" class="num">${fmtClock(S.roundMs)}</span> · ${m.attempts ? `${m.attempts} tentativa${m.attempts === 1 ? '' : 's'}` : 'olha para o ecrã'}</div>`;
   if (ui.tab === 'calc') return tabs + info + calcView(locked, left);
-  if (locked) return tabs + `<div class="state bad" style="margin:auto 0"><div class="mid">Errado!</div><div class="huge" id="lockSec">${left}</div><p style="font-size:18px;font-weight:600">Bloqueado. Usa a calculadora e as notas para pensar e tenta outra vez quando acabar.</p></div>`;
+  if (locked) return tabs + `<div class="state bad" style="margin:auto 0"><div class="mid">Errado!</div><div class="huge" id="lockSec">${left}</div><p style="font-size:18px;font-weight:600">Bloqueado. Usa a calculadora e as notas e tenta outra vez quando acabar.</p></div>`;
   const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '⌫'];
   return tabs + info + `
   <div class="display ${ui.entry ? '' : 'empty'}" id="disp">${ui.entry || 'Escreve a resposta'}</div>

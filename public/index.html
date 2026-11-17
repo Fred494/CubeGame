@@ -3,26 +3,33 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#FFF8E7">
 <title>Conta Cubos</title>
 <link rel="stylesheet" href="common.css">
 <link rel="stylesheet" href="cubes.css">
 <link rel="icon" href="favicon.svg">
+<style>
+  .home { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+  .home .box { max-width: 560px; width: 100%; text-align: center; }
+  .home .logo { width: 96px; height: 96px; margin: 0 auto 8px; display: block; }
+  .home h1 { font-size: clamp(44px, 12vw, 72px); font-weight: 900; line-height: 1; }
+  .home h1 span { color: var(--blue); }
+  .home .pill { display: inline-block; margin: 14px 0 22px; padding: 6px 16px; border-radius: 99px; background: var(--bg3); font-weight: 800; color: #8A5A00; }
+  .home p { font-size: 20px; line-height: 1.5; margin: 0 0 28px; }
+  .home .btns { display: grid; gap: 14px; }
+  .home .btn { font-size: 22px; min-height: 64px; text-decoration: none; display: grid; place-items: center; }
+</style>
 </head>
 <body>
-<main style="max-width:620px;margin:8vh auto;padding:0 20px;text-align:center">
-  <h1 style="font-size:52px">CONTA <span class="up">CUBOS</span></h1>
-  <p class="muted" style="font-size:18px">Jogo de festa para até 8 jogadores: o ecrã principal mostra um diagrama 3D de cubos e cada jogador adivinha quantos cubos tem no telemóvel. Ganha quem acertar mais depressa.</p>
-  <div class="card" style="display:grid;gap:12px;margin-top:24px">
-    <a class="btn green" href="host.html" style="text-decoration:none;display:grid;place-items:center">Criar jogo (ecrã principal)</a>
-    <a class="btn" href="play.html" style="text-decoration:none;display:grid;place-items:center">Entrar com um código</a>
-    <a class="btn ghost" href="preview.html" style="text-decoration:none;display:grid;place-items:center">Pré-visualizar diagramas</a>
+<main class="home"><div class="box">
+  <img class="logo" src="favicon.svg" alt="">
+  <h1>Conta <span>Cubos</span></h1>
+  <div class="pill">Até 8 jogadores</div>
+  <p>Adivinha o número de cubos na imagem.<br><b>Ganha quem acertar mais rápido.</b></p>
+  <div class="btns">
+    <a class="btn green" href="host.html?new=1">Criar jogo</a>
+    <a class="btn" href="play.html">Entrar com o código</a>
   </div>
-  <p class="muted" id="status" role="status" style="margin-top:18px"></p>
-</main>
-<script src="config.js"></script>
-<script>
-  fetch((window.MM_API || '').replace(/\/$/, '') + '/api/health').then(function () { document.getElementById('status').textContent = '● Servidor online'; })
-    .catch(function () { document.getElementById('status').textContent = 'Servidor não acessível. Corre npm start.'; });
-</script>
+</div></main>
 </body>
 </html>

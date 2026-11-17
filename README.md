@@ -27,7 +27,7 @@ npm test
 - **Server-authoritative** (`src/cubes.js`): the answer, the 20 s lock, the 3 min limit and all timings live on the server and are measured from the reveal moment. Players recover their state (including a running lock) after reloading.
 - **Diagrams** (`public/cubes/gen.js`): procedural height matrices, 96 molds over 5 levels, at least 16 per level (5x5 and 6x6 fully symmetric, 7x7 mirrored, 7x7 and 8x8 free). The answer is always the sum of the matrix. Fairness rules are validated before showing: pits at least 2x2 wide and at most 2 deep, and the top of every column visible in at least one of 12 rotation angles x 3 elevations (raycasting), retrying up to 60 times.
 - **Hand-made diagrams**: load a JSON file in the lobby, e.g. `[[3,0,2],[1,4,4],[0,2,1]]` or a list of matrices. They go through the same validation and are used for the first rounds.
-- **3D** (`public/cubes/view.js`): Three.js (vendored in `public/vendor/three`), orthographic camera, spin of 12 s per turn, elevation oscillating 28 to 56 degrees every 9 s.
+- **3D** (`public/cubes/view.js`): Three.js (vendored in `public/vendor/three`), orthographic camera, slow spin (45 s per turn), elevation drifting only 36 to 46 degrees over 60 s (no motion sickness).
 - **Test mode** (lobby toggle): 1 player is enough, key `A` shows the answer on the host screen, key `N` skips the round.
 
 ## Config

@@ -176,7 +176,7 @@ export function hostView(g, now = Date.now()) {
   step(g, now);
   const v = common(g, now);
   const d = g.round > 0 ? cur(g) : null;
-  if (d && ['countdown', 'playing', 'roundend'].includes(g.phase)) {
+  if (d && ['playing', 'roundend'].includes(g.phase)) { // never sent before the reveal moment
     v.diagram = { grid: d.grid, level: d.level, name: d.name };
     if (g.phase === 'roundend' || g.testMode) { v.answer = d.answer; v.layers = d.layers; }
   }

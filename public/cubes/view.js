@@ -8,8 +8,8 @@ import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 THREE.ColorManagement.enabled = false; // keep the exact hex colours: shading only has to separate top from sides
 
 export const CUBE_COLOR = 0xF4B80C;
-export const BG_COLOR = 0x93a4b6;
-export const SPIN_MS = 12000, TILT_MS = 9000, EL_MIN = 28, EL_MAX = 56;
+export const BG_COLOR = 0xFFF6DF;
+export const SPIN_MS = 45000, TILT_MS = 60000, EL_MIN = 36, EL_MAX = 46;
 const FACES = [ // [normal, 4 corners] of a unit cube at the origin; bottoms are never visible
   { n: [0, 1, 0], v: [[0, 1, 0], [0, 1, 1], [1, 1, 1], [1, 1, 0]], top: true },
   { n: [1, 0, 0], v: [[1, 0, 1], [1, 0, 0], [1, 1, 0], [1, 1, 1]], d: [0, 1] },

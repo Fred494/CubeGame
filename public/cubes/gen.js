@@ -10,7 +10,7 @@ export const LEVELS = {
   5: { n: 8, min: 220, max: 280, sym: 'free', label: 'Livre 8×8' },
 };
 export const VIEW_AZ = Array.from({ length: 12 }, (_, i) => i * 30);
-export const VIEW_EL = [28, 42, 56];
+export const VIEW_EL = [36, 41, 46];
 export const MAX_PIT_DEPTH = 2;
 export const MAX_HEIGHT = 12;
 export const MAX_ATTEMPTS = 60;
@@ -252,7 +252,7 @@ export const TEMPLATES = [
   ...MIR.map(([id, name, f]) => mkTpl(3, id, name, (r) => { const g = f(r); return based(3, r, 7, (i, j) => g(i, Math.min(j, 6 - j)), ); })),
   ...[4, 5].flatMap((level) => [
     ...FREE.filter(([id]) => id !== 'wave').map(([id, name, f]) => mkTpl(level, id, name, (r) => { const n = LEVELS[level].n; return based(level, r, n, f(r, n), { free: true, pits: r() < 0.5 ? 1 : 0 }); })),
-    ...FREE_BUILDS.map(([id, name, spec]) => mkTpl(level, id, name, (r) => { const n = LEVELS[level].n; return freeBuild(n, r, { B: level === 4 ? int(r, 2, 3) : 3, wmax: level === 4 ? 3 : 4, pits: 2, dmax: level === 4 ? 1 : 2, ...spec(n, r) }); })),
+    ...FREE_BUILDS.filter(([id]) => !(level === 4 && id === 'three-walls')).map(([id, name, spec]) => mkTpl(level, id, name, (r) => { const n = LEVELS[level].n; return freeBuild(n, r, { B: level === 4 ? int(r, 2, 3) : 3, wmax: level === 4 ? 3 : 4, pits: 2, dmax: level === 4 ? 1 : 2, ...spec(n, r) }); })),
   ]),
 ];
 
