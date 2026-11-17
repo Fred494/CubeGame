@@ -120,3 +120,11 @@ test('rounds are clamped to 1..10 and manual diagrams are used first', () => {
   assert.equal(game.rounds[0].answer, 44);
   assert.equal(game.rounds.length, 3);
 });
+
+test('at least 16 distinct molds per level', () => {
+  for (const level of [1, 2, 3, 4, 5]) {
+    const ids = TEMPLATES.filter((t) => t.level === level).map((t) => t.id);
+    assert.ok(ids.length >= 16, `level ${level} has ${ids.length}`);
+    assert.equal(new Set(ids).size, ids.length);
+  }
+});

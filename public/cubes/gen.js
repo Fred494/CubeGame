@@ -152,41 +152,110 @@ const walls2 = (r) => pick(r, [['N', 'W'], ['N', 'E'], ['S', 'W'], ['S', 'E']]);
 const walls3 = (r) => { const all = ['N', 'S', 'W', 'E']; all.splice(int(r, 0, 3), 1); return all; };
 const wallsOpp = (r) => pick(r, [['N', 'S'], ['W', 'E']]);
 
-export const TEMPLATES = [
-  // ---- level 1: 5x5, four equal sides
-  { id: 'l1-pyramid', level: 1, name: 'Pirâmide em degraus', build: (r) => { const B = int(r, 1, 3); return mk(5, (i, j) => B + ringOf(5, i, j)); } },
-  { id: 'l1-towers', level: 1, name: 'Castelo de 4 torres', build: (r) => { const B = int(r, 1, 3), t = int(r, 2, 4); return mk(5, (i, j) => B + (isCorner(5, i, j) ? t : 0)); } },
-  { id: 'l1-courtyard', level: 1, name: 'Castelo com pátio', build: (r) => { const B = int(r, 1, 2), t = int(r, 1, 3); return mk(5, (i, j) => (ringOf(5, i, j) === 0 ? B + 1 + (isCorner(5, i, j) ? t : 0) : B)); } },
-  { id: 'l1-crater', level: 1, name: 'Cratera', build: (r) => { const B = int(r, 1, 2), h = int(r, 1, 2); return mk(5, (i, j) => (ringOf(5, i, j) === 0 ? B + h : B)); } },
-  // ---- level 2: 6x6, four equal sides
-  { id: 'l2-temple', level: 2, name: 'Templo em anéis', build: (r) => { const B = int(r, 2, 3), s = int(r, 1, 2); return mk(6, (i, j) => B + s * ringOf(6, i, j)); } },
-  { id: 'l2-corner-towers', level: 2, name: 'Torres 2×2 nos cantos', build: (r) => {
-    const B = int(r, 2, 4), t = int(r, 1, 3), pit = r() < 0.5, d = int(r, 1, Math.min(2, B)), k = int(r, 1, 3);
-    return mk(6, (i, j) => { const cor = (i < 2 || i > 3) && (j < 2 || j > 3); const mid = i >= 2 && i <= 3 && j >= 2 && j <= 3; return cor ? B + t : mid ? (pit ? B - d : B + k) : B; });
-  } },
-  { id: 'l2-amphitheatre', level: 2, name: 'Anfiteatro', build: (r) => { const B = int(r, 1, 2), e0 = int(r, 2, 3), e1 = int(r, 1, 2); return mk(6, (i, j) => { const k = ringOf(6, i, j); return k === 0 ? B + e0 : k === 1 ? B + e1 : B; }); } },
-  // ---- level 3: 7x7, mirror left = right
-  { id: 'l3-fortress', level: 3, name: 'Fortaleza com rampa', build: (r) => {
-    const B = pick(r, [2, 3, 3]), w = int(r, 1, 3), d = int(r, 1, 2), tw = r() < 0.5;
-    return mirror(7, (i, j) => (i === 0 ? B + w : j === 3 && i <= 5 ? B + Math.min(3, 5 - i) : j >= 1 && j <= 2 && (i === 3 || i === 4) ? B - d : tw && i === 6 && j === 0 ? B + 2 : B));
-  } },
-  { id: 'l3-theatre', level: 3, name: 'Teatro de muros laterais', build: (r) => {
-    const B = pick(r, [2, 3, 3]), w = int(r, 1, 3), d = int(r, 1, 2), p = int(r, 1, 4);
-    return mirror(7, (i, j) => (j === 0 ? B + w : j === 3 ? B + (i < 2 ? 3 : i < 4 ? 2 : 1) : j <= 2 && (i === p || i === p + 1) ? B - d : B));
-  } },
-  { id: 'l3-bridge', level: 3, name: 'Ponte entre fossos', build: (r) => {
-    const B = pick(r, [2, 3, 3]), k = int(r, 2, 4), d = int(r, 1, 2), p = int(r, 2, 3), cap = int(r, 1, 2);
-    return mirror(7, (i, j) => (j === 3 ? B + k : j <= 2 && (i === p || i === p + 1) && j >= 1 ? B - d : i === 0 || i === 6 ? B + cap : B));
-  } },
-  // ---- level 4: 7x7 free
-  { id: 'l4-diagonal', level: 4, name: 'Escada diagonal e muros', build: (r) => freeBuild(7, r, { B: int(r, 2, 3), walls: walls2(r), wmax: 3, stair: 'diag', steps: int(r, 3, 4), pits: 2, dmax: 1 }) },
-  { id: 'l4-three-walls', level: 4, name: 'Três muros e escada reta', build: (r) => freeBuild(7, r, { B: int(r, 2, 3), walls: walls3(r), wmax: 2, stair: 'line', steps: 4, pits: 2, dmax: 1 }) },
-  { id: 'l4-corridor', level: 4, name: 'Corredor com escada fina', build: (r) => freeBuild(7, r, { B: int(r, 2, 3), walls: wallsOpp(r), wmax: 3, stair: 'diag1', steps: 4, pits: 2, dmax: 1 }) },
-  // ---- level 5: 8x8 free, base 3
-  { id: 'l5-diagonal', level: 5, name: 'Grande escada diagonal', build: (r) => freeBuild(8, r, { B: 3, walls: walls2(r), wmax: 4, stair: 'diag', steps: 6, pits: 2, dmax: 2 }) },
-  { id: 'l5-three-walls', level: 5, name: 'Cidadela de três muros', build: (r) => freeBuild(8, r, { B: 3, walls: walls3(r), wmax: 3, stair: 'line', steps: 6, pits: 2, dmax: 2 }) },
-  { id: 'l5-corridor', level: 5, name: 'Desfiladeiro', build: (r) => freeBuild(8, r, { B: 3, walls: wallsOpp(r), wmax: 4, stair: 'diag1', steps: 6, pits: 2, dmax: 2 }) },
+// ---- shape helpers: a shape is f(i,j) -> height offset; `based` adds a base so the total lands in the level's range.
+const U = (n, i) => Math.abs(2 * i - (n - 1)); // distance from the centre, in half cells
+function based(level, r, n, f, { pits = 0, free = false } = {}) {
+  const L = LEVELS[level], s = mk(n, f), mn = Math.min(...s.flat()), mx = Math.max(...s.flat()), sum = total(s), ok = [];
+  for (let B = Math.max(1, 1 - mn); B + mx <= MAX_HEIGHT; B++) { const t = sum + B * n * n; if (t >= L.min && t <= L.max) ok.push(B); }
+  if (!ok.length) return null;
+  const B = pick(r, ok), g = mk(n, (i, j) => B + s[i][j]);
+  if (pits) pitsOn(g, r, n, pits, 2, Math.min(...g.flat()));
+  if (!free) return g;
+  let o = g;
+  for (let k = int(r, 0, 3); k > 0; k--) o = rotate(o);
+  return r() < 0.5 ? flip(o) : o;
+}
+
+// Four-fold symmetric motifs (levels 1 and 2): functions of the distance from the centre only.
+const ROT = [
+  ['rings', 'Pirâmide em degraus', (r, n) => { const s = int(r, 1, 2); return (i, j) => s * ringOf(n, i, j); }],
+  ['diamond', 'Diamante', (r, n) => { const K = int(r, 3, n); return (i, j) => Math.max(0, K - (U(n, i) + U(n, j)) / 2); }],
+  ['corner-towers', 'Torres nos cantos', (r, n) => { const t = int(r, 2, 4); return (i, j) => (isCorner(n, i, j) ? t : 0); }],
+  ['corner-blocks', 'Blocos 2×2 nos cantos', (r, n) => { const t = int(r, 1, 3); return (i, j) => (Math.min(i, n - 1 - i) < 2 && Math.min(j, n - 1 - j) < 2 ? t : 0); }],
+  ['frame', 'Muralha', (r, n) => { const h = int(r, 1, 3); return (i, j) => (ringOf(n, i, j) === 0 ? h : 0); }],
+  ['plus', 'Cruz', (r, n) => { const h = int(r, 1, 3); return (i, j) => (U(n, i) <= 1 || U(n, j) <= 1 ? h : 0); }],
+  ['x', 'Cruz em X', (r, n) => { const h = int(r, 1, 3); return (i, j) => (i === j || i + j === n - 1 ? h : 0); }],
+  ['stripes', 'Anéis alternados', (r, n) => { const h = int(r, 1, 2); return (i, j) => (ringOf(n, i, j) % 2) * h; }],
+  ['gates', 'Portões ao centro', (r, n) => { const t = int(r, 1, 3); return (i, j) => (Math.max(U(n, i), U(n, j)) === n - 1 && Math.min(U(n, i), U(n, j)) <= 1 ? t : 0); }],
+  ['keep', 'Torre central', (r, n) => { const t = int(r, 2, 4); return (i, j) => (ringOf(n, i, j) >= 2 ? t : 0); }],
+  ['castle', 'Castelo de muralha', (r, n) => { const h = int(r, 1, 2), t = int(r, 1, 3); return (i, j) => (ringOf(n, i, j) === 0 ? h + (isCorner(n, i, j) ? t : 0) : 0); }],
+  ['star', 'Estrela', (r, n) => { const K = int(r, 3, 5); return (i, j) => Math.max(0, K - Math.abs(U(n, i) - U(n, j)) / 2); }],
+  ['quad-pyramids', 'Quatro pirâmides', (r, n) => { const K = int(r, 2, 3), q = n === 5 ? [1, 3] : [1, 4]; return (i, j) => Math.max(0, K - Math.min(...q.flatMap((a) => q.map((b) => Math.max(Math.abs(i - a), Math.abs(j - b)))))); }],
+  ['thick-x', 'Grande X', (r, n) => { const h = int(r, 1, 3); return (i, j) => (Math.abs(i - j) <= 1 || Math.abs(i + j - (n - 1)) <= 1 ? h : 0); }],
+  ['corner-stairs', 'Escadas nos cantos', (r, n) => { const K = int(r, 3, 5); return (i, j) => Math.max(0, K - Math.min(i, n - 1 - i) - Math.min(j, n - 1 - j)); }],
+  ['plateau', 'Praça elevada', (r, n) => { const h = int(r, 1, 3); return (i, j) => (ringOf(n, i, j) >= 1 ? h : 0); }],
+  ['pillars', 'Pilares interiores', (r, n) => { const t = int(r, 2, 4); return (i, j) => (ringOf(n, i, j) === 1 && U(n, i) === U(n, j) ? t : 0); }],
+  ['bowl', 'Taça', (r, n) => { const s = int(r, 1, 2), m = Math.floor((n - 1) / 2); return (i, j) => s * (m - ringOf(n, i, j)); }],
+  ['sun', 'Sol', (r, n) => { const t = int(r, 1, 2); return (i, j) => ringOf(n, i, j) + (U(n, i) <= 1 || U(n, j) <= 1 ? t : 0); }],
 ];
+
+// Left-right mirrored motifs (level 3, 7x7): f(row, w) where w = 0 (outer) .. 3 (centre column).
+const MIR = [
+  ['spine', 'Espinha central em rampa', (r) => { const K = int(r, 4, 6); return (i, w) => (w === 3 ? Math.max(0, K - i) : 0); }],
+  ['side-walls', 'Muros laterais', (r) => { const t = int(r, 1, 3); return (i, w) => (w === 0 ? t : 0); }],
+  ['terraces', 'Terraços', (r) => { const s = int(r, 1, 2); return (i, w) => s * Math.min(w, i); }],
+  ['tiers', 'Bancadas', (r) => { const s = int(r, 1, 2); return (i) => s * Math.floor(i / 2); }],
+  ['twin-towers', 'Torres gémeas', (r) => { const t = int(r, 2, 4); return (i, w) => (w === 0 && (i === 0 || i === 6) ? t : 0); }],
+  ['pit-bridge', 'Ponte e fossos', (r) => { const k = int(r, 2, 3), d = int(r, 1, 2), p = int(r, 2, 3); return (i, w) => (w === 3 ? k : w >= 1 && (i === p || i === p + 1) ? -d : 0); }],
+  ['gatehouse', 'Portão', (r) => { const t = int(r, 2, 3); return (i, w) => (i === 0 && w !== 3 ? t : i === 6 && w === 0 ? 1 : 0); }],
+  ['cross', 'Cruz', (r) => { const h = int(r, 1, 3); return (i, w) => (i === 3 || w === 3 ? h : 0); }],
+  ['chevron', 'Seta', (r) => { const K = int(r, 3, 4); return (i, w) => Math.max(0, K - Math.abs(i - (3 - w))); }],
+  ['diamond', 'Diamante', (r) => { const K = int(r, 4, 5); return (i, w) => Math.max(0, K - (Math.abs(i - 3) + (3 - w))); }],
+  ['corner-pillar', 'Torres e pilar', (r) => { const t = int(r, 2, 4), c = int(r, 2, 4); return (i, w) => (w === 0 && (i === 0 || i === 6) ? t : w === 3 && i === 3 ? c : 0); }],
+  ['moat', 'Muralha fechada', (r) => { const h = int(r, 1, 3); return (i, w) => (i === 0 || i === 6 || w === 0 ? h : 0); }],
+  ['u-shape', 'Ferradura', (r) => { const h = int(r, 2, 3); return (i, w) => (i === 0 || w === 0 ? h : 0); }],
+  ['ziggurat', 'Zigurate', (r) => { const s = int(r, 1, 2); return (i, w) => s * Math.min(i, 6 - i, w); }],
+  ['diag-ramp', 'Rampa diagonal', (r) => { const s = int(r, 2, 3); return (i, w) => Math.floor((i + w) / s); }],
+  ['pillars', 'Pilares', (r) => { const t = int(r, 2, 4); return (i, w) => (i % 2 === 0 && w % 2 === 0 ? t : 0); }],
+  ['hourglass', 'Ampulheta', (r) => { const s = int(r, 1, 2); return (i) => s * Math.abs(i - 3); }],
+  ['bleachers', 'Anfiteatro', (r) => { const s = int(r, 1, 2); return (i, w) => s * Math.floor((6 - i + (3 - w)) / 3); }],
+  ['gutter', 'Calha', (r) => { const h = int(r, 2, 3); return (i, w) => (w === 3 ? 0 : h) + (i === 0 ? 1 : 0); }],
+  ['rows', 'Filas de blocos', (r) => { const h = int(r, 1, 2); return (i, w) => (i % 2 === 0 ? h : 0) + (w === 3 ? 1 : 0); }],
+];
+
+// Free (asymmetric) motifs for levels 4 and 5: random placement, random rotation/flip.
+const FREE = [
+  ['diag-ramp', 'Rampa diagonal', (r) => { const s = int(r, 2, 3); return (i, j) => Math.floor((i + j) / s); }],
+  ['ridge', 'Cordilheira', (r, n) => { const rr = int(r, 1, n - 2), K = int(r, 3, 4); return (i) => Math.max(0, K - Math.abs(i - rr)); }],
+  ['corner-pyramid', 'Pirâmide de canto', (r, n) => { const K = int(r, n - 1, n + 1); return (i, j) => Math.max(0, K - Math.max(i, j)); }],
+  ['off-pyramid', 'Pirâmide descentrada', (r, n) => { const a = int(r, 1, n - 2), b = int(r, 1, n - 2), K = int(r, 3, 4); return (i, j) => Math.max(0, K - Math.max(Math.abs(i - a), Math.abs(j - b))); }],
+  ['off-diamond', 'Diamante descentrado', (r, n) => { const a = int(r, 1, n - 2), b = int(r, 1, n - 2), K = int(r, 4, 5); return (i, j) => Math.max(0, K - Math.abs(i - a) - Math.abs(j - b)); }],
+  ['terraces', 'Socalcos', (r) => { const s = int(r, 2, 3); return (i, j) => Math.floor(j / s); }],
+  ['valley', 'Vale', (r, n) => { const c = Math.floor(n / 2); return (i, j) => Math.abs(j - c); }],
+  ['plateau', 'Planalto', (r) => { const i0 = int(r, 0, 2), j0 = int(r, 0, 2), h = int(r, 2, 3), s = int(r, 3, 4); return (i, j) => (i >= i0 && i < i0 + s && j >= j0 && j < j0 + s ? h : 0); }],
+  ['two-towers', 'Duas torres', (r, n) => { const a = int(r, 3, 5), b = int(r, 2, 4); return (i, j) => (i === 0 && j === 0 ? a : i === n - 1 && j === n - 1 ? b : 0); }],
+  ['l-wall', 'Muro em L', (r) => { const h = int(r, 2, 4); return (i, j) => (i === 0 || j === 0 ? h : 0); }],
+  ['patches', 'Manchas 2×2', (r) => { const h = int(r, 1, 2); return (i, j) => ((Math.floor(i / 2) + Math.floor(j / 2)) % 2) * h; }],
+  ['wave', 'Onda', (r) => { const h = int(r, 1, 2); return (i, j) => (((i + 2 * j) % 4) >> 1) * h; }],
+  ['scattered', 'Torres dispersas', (r, n) => {
+    const t = Array.from({ length: int(r, 4, 6) }, () => [int(r, 0, n - 1), int(r, 0, n - 1), int(r, 2, 4)]);
+    return (i, j) => Math.max(0, ...t.map(([a, b, h]) => (i === a && j === b ? h : 0)));
+  }],
+  ['diag-wall', 'Muro diagonal', (r) => { const h = int(r, 2, 4), w = int(r, 0, 1); return (i, j) => (Math.abs(i - j) <= w ? h : 0); }],
+  ['rings-off', 'Anéis descentrados', (r, n) => { const a = int(r, 1, n - 2), b = int(r, 1, n - 2), s = int(r, 1, 2); return (i, j) => s * Math.floor(Math.max(Math.abs(i - a), Math.abs(j - b)) / 2); }],
+  ['half-pipe', 'Meio tubo', (r, n) => { const c = Math.floor(n / 2); return (i, j) => Math.floor(Math.abs(j - c) / 2) * 2; }],
+  ['crossing', 'Cumes cruzados', (r, n) => { const a = int(r, 1, n - 2), b = int(r, 1, n - 2), h = int(r, 2, 3); return (i, j) => (i === a || j === b ? h : 0); }],
+  ['twin-hills', 'Duas colinas', (r, n) => { const a = int(r, 1, n - 2), b = int(r, 1, 3), K = int(r, 3, 4); return (i, j) => Math.max(0, K - Math.max(Math.abs(i - a), Math.abs(j - b)), K - Math.max(Math.abs(i - (n - 1 - a)), Math.abs(j - (n - 1 - b)))); }],
+  ['arena', 'Arena', (r) => { const h = int(r, 2, 3), a = int(r, 1, 2); return (i, j) => (i >= a && i < a + 4 && j >= a && j < a + 4 ? 0 : h); }],
+  ['stairs-s', 'Escada em S', (r, n) => (i, j) => (i < n / 2 ? Math.floor(j / 2) : Math.floor((n - 1 - j) / 2))],
+];
+
+const FREE_BUILDS = [
+  ['diagonal', 'Escada diagonal e muros', (n, r) => ({ walls: walls2(r), stair: 'diag', steps: n === 7 ? int(r, 3, 4) : 6 })],
+  ['three-walls', 'Três muros e escada reta', (n, r) => ({ walls: walls3(r), stair: 'line', steps: n === 7 ? 4 : 6 })],
+  ['corridor', 'Corredor com escada fina', (n, r) => ({ walls: wallsOpp(r), stair: 'diag1', steps: n === 7 ? 4 : 6 })],
+];
+
+const mkTpl = (level, id, name, build) => ({ id: `l${level}-${id}`, level, name, build });
+export const TEMPLATES = [
+  ...[1, 2].flatMap((level) => ROT.filter(([id]) => !(level === 1 && ['stripes', 'bowl', 'corner-stairs'].includes(id))).map(([id, name, f]) => mkTpl(level, id, name, (r) => { const n = LEVELS[level].n; return based(level, r, n, f(r, n)); }))),
+  ...MIR.map(([id, name, f]) => mkTpl(3, id, name, (r) => { const g = f(r); return based(3, r, 7, (i, j) => g(i, Math.min(j, 6 - j)), ); })),
+  ...[4, 5].flatMap((level) => [
+    ...FREE.filter(([id]) => id !== 'wave').map(([id, name, f]) => mkTpl(level, id, name, (r) => { const n = LEVELS[level].n; return based(level, r, n, f(r, n), { free: true, pits: r() < 0.5 ? 1 : 0 }); })),
+    ...FREE_BUILDS.map(([id, name, spec]) => mkTpl(level, id, name, (r) => { const n = LEVELS[level].n; return freeBuild(n, r, { B: level === 4 ? int(r, 2, 3) : 3, wmax: level === 4 ? 3 : 4, pits: 2, dmax: level === 4 ? 1 : 2, ...spec(n, r) }); })),
+  ]),
+];
+
 export const templatesFor = (level) => TEMPLATES.filter((t) => t.level === level);
 
 /** Symmetry check used by the tests: 'rot' = 4-fold rotation, 'mirror' = left/right. */

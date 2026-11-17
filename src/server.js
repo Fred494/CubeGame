@@ -140,5 +140,5 @@ const flush = () => { for (const g of rooms.values()) { try { saveRoom(g); } cat
 process.on('SIGINT', flush); process.on('SIGTERM', flush);
 
 if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(ROOT, 'src/server.js')) {
-  server.listen(PORT, () => console.log(`Conta Cubos running on http://localhost:${PORT}`));
+  server.listen(PORT, '0.0.0.0', () => console.log(`Conta Cubos running on http://localhost:${PORT}`));
 }

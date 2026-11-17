@@ -8,7 +8,7 @@ let S = null, sig = '', off = 0; // off = server clock - local clock
 let showAns = false, stage = null, stageRound = 0;
 let anim = null; // layer-by-layer build at the end of a round
 const app = $('#app'), game = $('#game'), chTop = $('#chTop'), chBody = $('#chBody'), chOv = $('#chOverlay');
-const joinUrl = () => `${location.origin}${location.pathname.replace(/cubos-host\.html$/, '')}play.html?code=${host.code}`;
+const joinUrl = () => `${location.origin}${location.pathname.replace(/host.html$/, '')}play.html?code=${host.code}`;
 const srvNow = () => Date.now() + off;
 const fmtMs = (ms) => { const t = Math.round(ms / 100) / 10, m = Math.floor(t / 60); return `${m}:${(t - m * 60).toFixed(1).padStart(4, '0')}`; };
 
